@@ -1,0 +1,34 @@
+# Codex CLI state (config, history, sqlite, logs, memories)
+.codex/
+
+# Revula / tool state — rebuilt by scripts/revula_restore.sh
+.revula/
+tools/
+revula/deps/
+ghidra-headless-mcp/deps/
+
+# Tool run-state caches
+.quark-engine/
+.semgrep/
+.envi/
+.android/
+
+# Logs & scratch
+*.log
+.mimo2codex/
+.opencode/
+
+# Editor / OS
+.idea/
+.DS_Store
+
+# Environment symlinks into /system and /home/zeus (never commit)
+.cursor-server
+.vscode-server
+.windsurf-server
+.vscode/
+.lightning_studio/
+
+# Embedded git repos (managed separately; contain their own .gitignore)
+revula/
+ghidra-headless-mcp/
