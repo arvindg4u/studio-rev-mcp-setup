@@ -52,3 +52,6 @@ jadx-mcp-server/
 !.codex/skills/rev-mcp-restore/agents/
 .codex/skills/rev-mcp-restore/agents/*
 !.codex/skills/rev-mcp-restore/agents/openai.yaml
+
+# android-reverse-engineering-mcp-server (embedded repo, managed separately)
+android-reverse-engineering-mcp-server/
