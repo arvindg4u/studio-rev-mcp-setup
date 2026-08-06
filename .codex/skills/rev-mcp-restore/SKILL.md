@@ -7,7 +7,7 @@ description: Restore and bring up the persistent reverse-engineering MCP stack (
 
 After a pool-machine restart only `/teamspace/studios/this_studio` persists. Four MCP servers are configured in `/teamspace/studios/this_studio/.codex/config.toml`:
 - `revula` — 121 tools (`python3 -m revula.server`, cwd `revula/`, deps `revula/deps`)
-- `ghidra_headless_mcp` — Ghidra 12.1.2 (`tools/ghidra_12.1.2_PUBLIC`, JDK `tools/jdk-21.0.12+8`)
+- `ghidra_headless_mcp` — Ghidra 12.1.2 (`tools/ghidra_12.1.2_PUBLIC`, JDK `tools/jdk-21.0.12+8`); read-write sessions via `GHIDRA_HEADLESS_MCP_READ_ONLY=0` (see `scripts/ghidra_mcp_setup.sh`)
 - `jadx_mcp` — 32 tools; requires Xvfb + jadx-gui + the JADX-AI-MCP plugin running
 - `android_rev_mcp` — 6 tools (`server.py`, cwd `android-reverse-engineering-mcp-server/`, deps `android-reverse-engineering-mcp-server/deps`, mcp 1.x pinned; optional vineflower/dex2jar in `.local/bin`)
 
@@ -18,7 +18,7 @@ After a pool-machine restart only `/teamspace/studios/this_studio` persists. Fou
 - Embedded repos (`revula/`, `ghidra-headless-mcp/`, `jadx-mcp-server/`) are gitignored; don't commit unless asked.
 
 ## Full restore after a restart
-1. Run `/teamspace/studios/this_studio/scripts/studio_restore.sh` (revula restore + jadx setup + android-rev setup; idempotent, safe to re-run).
+1. Run `/teamspace/studios/this_studio/scripts/studio_restore.sh` (revula restore + jadx setup + android-rev setup + ghidra read-write registration; idempotent, safe to re-run).
 2. Bring up the jadx stack: `/teamspace/studios/this_studio/jadx-mcp-server/bin/jadx-mcp-up` (starts Xvfb :99, jadx-gui with `sample.apk`, waits for plugin on `127.0.0.1:8650`).
 3. Start a FRESH Codex session (not `resume`). Codex only attaches MCP servers that reach "ready" at session start; a server spawned mid-session is omitted with `omitting MCP server without an exact ready client`.
 
