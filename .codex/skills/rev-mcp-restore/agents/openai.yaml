@@ -1,0 +1,6 @@
+interface:
+  display_name: "RE MCP Stack Restore"
+  short_description: "Restore revula/ghidra/jadx MCP servers after restart"
+  default_prompt: "Use $rev-mcp-restore to bring back the revula, ghidra, and jadx MCP servers after a studio restart."
+policy:
+  allow_implicit_invocation: true

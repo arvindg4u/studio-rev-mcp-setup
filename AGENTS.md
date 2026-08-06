@@ -1,1 +1,1 @@
-This studio is on pool machine. So, only if the studio restart, then survives or persists /this_studio
+This studio is on pool machine. So, if the studio restart, then only persists /this_studio

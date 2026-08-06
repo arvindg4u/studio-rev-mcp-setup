@@ -357,6 +357,9 @@ path = "${BIN}/capinfos"
 [tools.checksec]
 path = "${BIN}/checksec"
 
+[tools.gdb]
+path = "${BIN}/gdb"
+
 [tools.pdbutil]
 path = "${BIN}/llvm-pdbutil"
 

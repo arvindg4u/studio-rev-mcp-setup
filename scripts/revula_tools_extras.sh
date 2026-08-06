@@ -163,7 +163,13 @@ EOF
   else warn "one_gadget gem install failed"; fi
 fi
 
-# 9. Android SDK (adb, aapt/aapt2, apksigner, zipalign)
+# 9. gdb (deb-extracted GNU debugger — persistent, no system-wide install)
+if [[ ! -x "${BIN}/gdb" ]]; then
+  deb_extract gdb
+  [[ -x "${APTROOT}/usr/bin/gdb" ]] && wrapped gdb usr/bin/gdb && ok "gdb" || warn "gdb missing"
+fi
+
+# 10. Android SDK (adb, aapt/aapt2, apksigner, zipalign)
 if [[ "${SKIP_ANDROID:-0}" != "1" && ! -x "${ANDROID_ROOT}/platform-tools/adb" ]]; then
   if [[ ! -d "${ANDROID_ROOT}/cmdline-tools/latest" ]]; then
     local ct_zip; ct_zip="$(mktemp /tmp/cmdtools.XXXXXX.zip)"

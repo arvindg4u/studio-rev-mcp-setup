@@ -15,14 +15,14 @@ Ghidra in revula is **intentionally disabled** — `ghidra-headless-mcp` already
 | Tool archives (jadx, apktool, smali, cfr, radare2, rizin, DynamoRIO, DIE, UPX, RetDec, capa-rules, YARA rules) | `/teamspace/studios/this_studio/.revula/tools` |
 | Ruby gems (one_gadget) | `/teamspace/studios/this_studio/.revula/gems` |
 | Revula config | `/teamspace/studios/this_studio/.revula/config.toml` |
-| Deb-extracted toolchains (local prefix: tshark, qemu-user, wabt, llvm-19, mono, ruby, binwalk) | `/teamspace/studios/this_studio/tools/apt` |
+| Deb-extracted toolchains (local prefix: tshark, qemu-user, wabt, llvm-19, mono, ruby, binwalk, **gdb**) | `/teamspace/studios/this_studio/tools/apt` |
 | Android SDK (platform-tools + build-tools 34) | `/teamspace/studios/this_studio/tools/android` |
 | Shared with ghidra MCP: Ghidra 12.1.2, Temurin JDK 21 | `/teamspace/studios/this_studio/tools/ghidra_12.1.2_PUBLIC`, `/teamspace/studios/this_studio/tools/jdk-21.0.12+8` |
 
 ## Tool status
 
 - 121 MCP tools registered under the `revula_` namespace (`re_*` internal names are namespaced; no clash with `ghidra_headless_mcp`).
-- 40/44 external tools available. Missing (optional): `lldb`, `msfvenom`, `qemu_system` (multi-GB system emulator) — revula degrades gracefully.
+- 41/44 external tools available (gdb now persistent, no system-wide apt install). Missing (optional): `lldb`, `msfvenom`, `qemu_system` (multi-GB system emulator) — revula degrades gracefully.
 - Key backends verified through Codex: entropy, disasm (r2/capstone), strings (floss/strings), parse_binary, binwalk firmware scan, capa (rules bundled), RetDec decompile (x86), admin status.
 
 ## Wrapper fixes baked in (do not regress these)
@@ -45,7 +45,7 @@ bash scripts/revula_restore.sh            # main + extras + MCP registration (id
 Individual scripts:
 
 - `scripts/revula_persistent_setup.sh` — repo clone, `pip install --target … ".[full]"`, core tools, wrappers, `config.toml`.
-- `scripts/revula_tools_extras.sh` — apt-prefix tools (binwalk, tshark, qemu-user, wabt, llvm-19, mono, ruby + one_gadget), Android SDK.
+- `scripts/revula_tools_extras.sh` — apt-prefix tools (binwalk, tshark, qemu-user, wabt, llvm-19, mono, ruby, **gdb** + one_gadget), Android SDK.
 - `scripts/revula_codex_mcp.sh` — (re)writes the `[mcp_servers.revula]` block in `.codex/config.toml`; validates TOML before replacing.
 
 ## Codex registration

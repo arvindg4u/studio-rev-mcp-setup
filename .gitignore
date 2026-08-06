@@ -1,5 +1,5 @@
 # Codex CLI state (config, history, sqlite, logs, memories)
-.codex/
+.codex/*
 
 # Revula / tool state — rebuilt by scripts/revula_restore.sh
 .revula/
@@ -32,3 +32,23 @@ ghidra-headless-mcp/deps/
 # Embedded git repos (managed separately; contain their own .gitignore)
 revula/
 ghidra-headless-mcp/
+
+# Revula MCP runtime scratch (created under studio root by sandbox allowed_dirs)
+revula_decompile_*/
+revula_smali_*/
+revula_quark_*/
+revula_*/
+
+# jadx-mcp-server (embedded repo, managed separately)
+jadx-mcp-server/
+.java/
+
+# Track the restore skill; keep the rest of .codex ignored
+!.codex/skills/
+.codex/skills/*
+!.codex/skills/rev-mcp-restore/
+.codex/skills/rev-mcp-restore/*
+!.codex/skills/rev-mcp-restore/SKILL.md
+!.codex/skills/rev-mcp-restore/agents/
+.codex/skills/rev-mcp-restore/agents/*
+!.codex/skills/rev-mcp-restore/agents/openai.yaml
