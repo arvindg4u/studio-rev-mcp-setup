@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import com.adaptivesr.data.TokenStore
+import com.adaptivesr.data.remote.RaindropApi
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.aead.AeadKeyTemplates
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
@@ -55,6 +56,11 @@ object AppModule {
       .baseUrl("https://api.raindrop.io/")
       .addConverterFactory(MoshiConverterFactory.create(moshi))
       .build()
+
+  @Provides
+  @Singleton
+  fun provideRaindropApi(retrofit: Retrofit): RaindropApi =
+    retrofit.create(RaindropApi::class.java)
 
   @Provides
   fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO

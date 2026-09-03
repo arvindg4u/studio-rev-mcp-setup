@@ -92,12 +92,22 @@ class SrRepositoryImpl @Inject constructor(
     runCatching { flushPending() }
   }
 
-  // Bodies land in Task 5 with the Retrofit tag toggle; signatures frozen here.
-  override suspend fun enqueueRaindropIfAbsent(item: RaindropItemRef): Unit =
-    throw UnsupportedOperationException("enqueueRaindropIfAbsent lands in Task 5")
+  override suspend fun enqueueRaindropIfAbsent(item: RaindropItemRef) {
+    if (dao.byRaindrop(item.itemId) != null) return
+    // Outbox row keyed on the UNIQUE(raindropId) constraint: if J4 inserts the same
+    // raindrop concurrently, Room REPLACE on conflict keeps one row and the server-side
+    // unique(raindrop_id) is the final dedupe authority on flush (conflict → ALREADY_PROCESSED clears flag).
+    dao.upsertAll(listOf(CardEntity(id = UUID.randomUUID().toString(), title = item.title, link = item.link, source = "RAINDROP", raindropId = item.itemId, pendingSync = 1, idempotencyKey = UUID.randomUUID().toString())))
+  }
 
-  override suspend fun setRaindropEnabled(item: RaindropItemRef, enabled: Boolean): Unit =
-    throw UnsupportedOperationException("setRaindropEnabled lands in Task 5")
+  override suspend fun setRaindropEnabled(item: RaindropItemRef, enabled: Boolean) {
+    if (enabled) enqueueRaindropIfAbsent(item)
+    // toggle-off: intentionally no delete, card stays with pendingSync unchanged
+    when (val r = remote.setSrTag(item.itemId, enabled)) {
+      is ApiResult.Ok -> Unit
+      is ApiResult.Err -> dao.byRaindrop(item.itemId)?.let { dao.markPending(it.id, it.pendingSync, r.code.name) }
+    }
+  }
 
   override suspend fun pullDue() {
     when (val r = remote.pullDue()) {

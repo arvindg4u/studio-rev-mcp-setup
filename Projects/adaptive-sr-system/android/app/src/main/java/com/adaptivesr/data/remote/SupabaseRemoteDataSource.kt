@@ -47,7 +47,8 @@ interface SupabaseRemoteDataSource {
  */
 class SupabaseRemoteDataSourceImpl @Inject constructor(
   private val client: SupabaseClient,
-  private val tokens: TokenStore
+  private val tokens: TokenStore,
+  private val raindrop: RaindropApi
 ) : SupabaseRemoteDataSource {
 
   override suspend fun pullDue(): ApiResult<List<CardEntity>> {
@@ -162,10 +163,33 @@ class SupabaseRemoteDataSourceImpl @Inject constructor(
     }
   }
 
-  // Single stubbed fun in Task 2: backed by the Task 5 RaindropApi PUT at runtime.
-  // Task 5 replaces this one body; everything else above is real.
-  override suspend fun setSrTag(raindropId: Long, enabled: Boolean): ApiResult<Unit> =
-    throw UnsupportedOperationException("setSrTag lands in Task 5 with RaindropApi")
+  // GET-then-PUT mirrors the GAS removeRaindropSRTag flow: read the live
+  // bookmark, edit only its tags, PUT back. Tags-only body leaves the note
+  // untouched; comparison is case-insensitive per the GAS SR_TAG rule.
+  override suspend fun setSrTag(raindropId: Long, enabled: Boolean): ApiResult<Unit> {
+    return try {
+      val token = tokens.raindropToken.first() ?: return ApiResult.Err(ErrorCode.UNKNOWN)
+      val auth = "Bearer $token"
+      val current = raindrop.getRaindrop(auth, raindropId).item
+        ?: return ApiResult.Err(ErrorCode.NOT_FOUND)
+      val tags = current.tags.orEmpty().toMutableList()
+      val has = tags.any { it.equals(SR_TAG, ignoreCase = true) }
+      if (enabled && !has) tags.add(SR_TAG)
+      if (!enabled && has) tags.removeAll { it.equals(SR_TAG, ignoreCase = true) }
+      raindrop.updateTags(auth, raindropId, mapOf("tags" to tags))
+      ApiResult.Ok(Unit)
+    } catch (e: retrofit2.HttpException) {
+      ApiResult.Err(when (e.code()) {
+        404 -> ErrorCode.NOT_FOUND
+        429 -> ErrorCode.RATE_LIMITED
+        else -> ErrorCode.UNKNOWN
+      })
+    } catch (e: IOException) {
+      ApiResult.Err(ErrorCode.NETWORK)
+    } catch (e: Exception) {
+      ApiResult.Err(ErrorCode.UNKNOWN)
+    }
+  }
 }
 
 private fun restToCode(e: RestException): ErrorCode = when (e.statusCode) {

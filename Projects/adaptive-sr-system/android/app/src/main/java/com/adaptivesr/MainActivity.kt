@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.adaptivesr.ui.add.AddScreen
+import com.adaptivesr.ui.library.LibraryScreen
 import com.adaptivesr.ui.today.TodayScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -75,7 +76,7 @@ fun AdaptiveSrNav() {
     Box(Modifier.padding(inner)) {
       NavHost(navController = nav, startDestination = "today") {
         composable("today") { TodayScreen() }
-        composable("library") { PlaceholderScreen("Library — lands in Task 5") }
+        composable("library") { LibraryScreen() }
         composable("stats") { PlaceholderScreen("Stats — lands in Task 6") }
         composable(
           route = "add?text={text}",
