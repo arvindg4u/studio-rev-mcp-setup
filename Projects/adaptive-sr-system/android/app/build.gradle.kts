@@ -31,6 +31,9 @@ android {
   }
   kotlinOptions {
     jvmTarget = "17"
+    // supabase-kt marks its request-builder DSL (headers/limit) experimental;
+    // per-call bearer auth is the app-wide pattern, so opt in once here.
+    freeCompilerArgs += "-opt-in=io.github.jan.supabase.annotations.SupabaseExperimental"
   }
 
   buildTypes {
