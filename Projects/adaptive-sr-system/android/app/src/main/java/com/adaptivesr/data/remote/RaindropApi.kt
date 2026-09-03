@@ -5,6 +5,7 @@ import com.adaptivesr.ui.library.RaindropItem
 import com.adaptivesr.ui.library.RaindropSource
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -29,6 +30,12 @@ interface RaindropApi {
 
   @GET("rest/v1/collections")
   suspend fun collections(@Header("Authorization") auth: String): Any
+
+  // Smoke-test endpoint for Settings: 2xx means the pasted token works.
+  // ResponseBody (not Any — Moshi has no Object adapter) so Retrofit's
+  // built-in converter passes the raw body through; caller closes it.
+  @GET("rest/v1/user")
+  suspend fun user(@Header("Authorization") auth: String): ResponseBody
 
   // Deviation from plan (which lists 3 methods): GET-single mirrors the GAS
   // removeRaindropSRTag flow (GET then PUT) so the toggle edits live tags

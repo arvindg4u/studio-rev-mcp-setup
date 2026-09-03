@@ -8,6 +8,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import java.time.Duration
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
 object WorkerScheduler {
@@ -22,6 +25,34 @@ object WorkerScheduler {
         .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
         .build()
     )
+  }
+
+  // Daily pair: 8am digest + 2am drift check. Times are Asia/Kolkata wall
+  // clock; the initial delay lands the first run on the next occurrence and
+  // the 24h period holds it after that (exactness best-effort under Doze —
+  // the FCM nudge in DuePushReceiver covers time-sensitive wakes).
+  fun scheduleDaily(ctx: Context) {
+    val wm = WorkManager.getInstance(ctx)
+    wm.enqueueUniquePeriodicWork(
+      "daily-reminder", ExistingPeriodicWorkPolicy.KEEP,
+      PeriodicWorkRequestBuilder<ReminderWorker>(24, TimeUnit.HOURS)
+        .setInitialDelay(delayUntil(8, 0), TimeUnit.MILLISECONDS)
+        .build()
+    )
+    wm.enqueueUniquePeriodicWork(
+      "nightly-backup-check", ExistingPeriodicWorkPolicy.KEEP,
+      PeriodicWorkRequestBuilder<BackupCheckWorker>(24, TimeUnit.HOURS)
+        .setInitialDelay(delayUntil(2, 0), TimeUnit.MILLISECONDS)
+        .build()
+    )
+  }
+
+  private fun delayUntil(hour: Int, minute: Int): Long {
+    val zone = ZoneId.of("Asia/Kolkata")
+    val now = ZonedDateTime.now(zone)
+    var next = now.withHour(hour).withMinute(minute).withSecond(0).withNano(0)
+    if (!next.isAfter(now)) next = next.plusDays(1)
+    return Duration.between(now, next).toMillis()
   }
 
   fun pullNow(ctx: Context) {

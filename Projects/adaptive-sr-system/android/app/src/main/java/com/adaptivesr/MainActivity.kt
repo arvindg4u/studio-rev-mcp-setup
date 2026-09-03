@@ -23,6 +23,8 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.adaptivesr.ui.add.AddScreen
 import com.adaptivesr.ui.library.LibraryScreen
+import com.adaptivesr.ui.settings.SettingsScreen
+import com.adaptivesr.ui.stats.StatsScreen
 import com.adaptivesr.ui.today.TodayScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -77,7 +79,7 @@ fun AdaptiveSrNav() {
       NavHost(navController = nav, startDestination = "today") {
         composable("today") { TodayScreen() }
         composable("library") { LibraryScreen() }
-        composable("stats") { PlaceholderScreen("Stats — lands in Task 6") }
+        composable("stats") { StatsScreen() }
         composable(
           route = "add?text={text}",
           arguments = listOf(navArgument("text") { type = NavType.StringType; nullable = true }),
@@ -88,15 +90,8 @@ fun AdaptiveSrNav() {
             onSaved = { nav.navigate("today") { launchSingleTop = true } }
           )
         }
-        composable("settings") { PlaceholderScreen("Settings — paste tokens here (Task 6)") }
+        composable("settings") { SettingsScreen() }
       }
     }
-  }
-}
-
-@Composable
-fun PlaceholderScreen(text: String) {
-  Box {
-    Text(text)
   }
 }
