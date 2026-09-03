@@ -136,7 +136,7 @@ create policy "own rows" on notifications for all using (auth.uid() = user_id) w
 - `process_review(p_card_id uuid DEFAULT NULL, p_session_id text DEFAULT NULL, p_rating text, p_idempotency_key text)` — one of card/session id required (session_id = legacy GAS compat). Atomic txn: `SELECT ... FOR UPDATE` → `sm2_next_interval()` → `UPDATE cards` + `INSERT reviews`. Replay with same idempotency key → `{alreadyProcessed:true, errorCode:'ALREADY_PROCESSED'}`.
 - `list_items(p_filter 'due'|'all'|'mastered', p_query, p_cursor_due, p_cursor_id, p_limit)` — due = `suspended=false AND next_review_at<=now() ORDER BY next_review_at,id`; returns items + `dueDate/overdueDays/nextPreview` + `nextCursor/hasMore`.
 - `get_item_detail(p_item_id)` — card + `history[]` from reviews ASC (replaces Task-notes history).
-- `update_item`, `delete_item` (soft `status='deleted'` default, hard=true deletes), `get_dashboard_stats` (active/due/mastered/masteryRate/ratings/hardTopics[5]).
+- `update_item`, `delete_item` (soft `status='DELETED'` default, hard=true deletes), `get_dashboard_stats` (active/due/mastered/masteryRate/ratings/hardTopics[5]). (Amendment 2026-09-03: uppercase `DELETED` to match the `cards_status_check` convention `NEW/REVIEW/RELEARN/MASTERED`; Plan 1 Task 4 widens the check accordingly.)
 - Reads: direct PostgREST `GET /rest/v1/cards` + dashboard views allowed. Writes: RPC only.
 - Envelope everywhere: `{success, data, errorCode, version:1}` with `INVALID_RATING | ALREADY_PROCESSED | RATE_LIMITED | NOT_FOUND`.
 
