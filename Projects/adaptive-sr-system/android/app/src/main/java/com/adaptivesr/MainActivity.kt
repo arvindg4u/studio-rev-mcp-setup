@@ -14,10 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import com.adaptivesr.ui.add.AddScreen
 import com.adaptivesr.ui.today.TodayScreen
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -73,7 +77,16 @@ fun AdaptiveSrNav() {
         composable("today") { TodayScreen() }
         composable("library") { PlaceholderScreen("Library — lands in Task 5") }
         composable("stats") { PlaceholderScreen("Stats — lands in Task 6") }
-        composable("add") { PlaceholderScreen("Add — lands in Task 4") }
+        composable(
+          route = "add?text={text}",
+          arguments = listOf(navArgument("text") { type = NavType.StringType; nullable = true }),
+          deepLinks = listOf(navDeepLink { uriPattern = "adaptivesr://add?text={text}" })
+        ) { entry ->
+          AddScreen(
+            prefill = entry.arguments?.getString("text"),
+            onSaved = { nav.navigate("today") { launchSingleTop = true } }
+          )
+        }
         composable("settings") { PlaceholderScreen("Settings — paste tokens here (Task 6)") }
       }
     }
