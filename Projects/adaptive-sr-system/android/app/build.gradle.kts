@@ -19,6 +19,12 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  testOptions {
+    unitTests {
+      isIncludeAndroidResources = true
+    }
+  }
+
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -28,9 +34,9 @@ android {
   buildFeatures {
     compose = true
   }
-  composeOptions {
-    kotlinCompilerExtensionVersion = "1.5.14"
-  }
+  // No composeOptions block: org.jetbrains.kotlin.plugin.compose (2.0.20)
+  // manages the Compose compiler version itself; a manual
+  // kotlinCompilerExtensionVersion pin conflicts with it.
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -67,8 +73,14 @@ dependencies {
 
   implementation("com.google.firebase:firebase-messaging:23.2.0")
 
+  // Matches the kotlinx-serialization-json Ktor 3.0.2 (supabase-kt 3.0.3's
+  // engine) expects; explicit pin avoids Gradle resolving a newer minor.
+  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
   testImplementation("junit:junit:4.13.2")
   testImplementation("app.cash.turbine:turbine:1.1.0")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
   testImplementation("androidx.datastore:datastore-preferences:1.1.1")
+  testImplementation("androidx.test:core:1.6.1")
+  testImplementation("org.robolectric:robolectric:4.14.1")
 }
