@@ -18,6 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.adaptivesr.ui.today.TodayScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -69,7 +70,7 @@ fun AdaptiveSrNav() {
   ) { inner ->
     Box(Modifier.padding(inner)) {
       NavHost(navController = nav, startDestination = "today") {
-        composable("today") { PlaceholderScreen("Today — due queue lands in Task 3") }
+        composable("today") { TodayScreen() }
         composable("library") { PlaceholderScreen("Library — lands in Task 5") }
         composable("stats") { PlaceholderScreen("Stats — lands in Task 6") }
         composable("add") { PlaceholderScreen("Add — lands in Task 4") }
