@@ -76,6 +76,9 @@ dependencies {
 
   implementation("androidx.datastore:datastore-preferences:1.1.1")
   implementation("androidx.security:security-crypto:1.1.0-alpha06")
+  // Direct dep: AppModule references Aead/AndroidKeysetManager in signatures,
+  // and transitive implementation deps are not compile-visible to the app.
+  implementation("com.google.crypto.tink:tink-android:1.13.0")
 
   implementation(platform("io.github.jan-tennert.supabase:bom:3.0.3"))
   implementation("io.github.jan-tennert.supabase:postgrest-kt")
