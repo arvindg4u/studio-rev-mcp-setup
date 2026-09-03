@@ -54,4 +54,14 @@ jadx-mcp-server/
 !.codex/skills/rev-mcp-restore/agents/openai.yaml
 
 # android-reverse-engineering-mcp-server (embedded repo, managed separately)
+# emulation-mcp (embedded repo, managed separately)
+emulation-mcp/
 android-reverse-engineering-mcp-server/
+
+# Adaptive SR Android — CI builds APKs; never commit local SDK state, keys, or outputs
+**/local.properties
+**/*.keystore
+**/*.jks
+Projects/adaptive-sr-system/android/.gradle/
+Projects/adaptive-sr-system/android/**/build/
+Projects/adaptive-sr-system/android/**/google-services.json

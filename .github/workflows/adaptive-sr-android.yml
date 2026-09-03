@@ -1,0 +1,144 @@
+name: Adaptive SR Android
+
+# Native Kotlin app — no local SDK/Gradle toolchain. CI is the ONLY builder.
+# Mirrors the gemini-live-voice-chat release flow, minus its npm/Capacitor steps.
+
+on:
+  push:
+    branches: [main]
+    tags: ['adaptive-sr-v*']
+    paths: ['Projects/adaptive-sr-system/**']
+  pull_request:
+    branches: [main]
+    paths: ['Projects/adaptive-sr-system/**']
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant Gradlew permission
+        run: chmod +x Projects/adaptive-sr-system/android/gradlew
+
+      - name: Run unit tests
+        working-directory: Projects/adaptive-sr-system/android
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
+
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-sr-test-report
+          path: Projects/adaptive-sr-system/android/app/build/reports/tests/testDebugUnitTest
+          retention-days: 14
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Grant Gradlew permission
+        run: chmod +x Projects/adaptive-sr-system/android/gradlew
+
+      - name: Build Debug APK
+        working-directory: Projects/adaptive-sr-system/android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-sr-debug-apk
+          path: Projects/adaptive-sr-system/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      # ---- Release APK/AAB (signed) ----
+      # Uses repo secrets ANDROID_KEYSTORE_BASE64 etc. if present (Play Store).
+      # Otherwise generates an ephemeral keystore so you always get an installable release APK/AAB.
+      - name: Setup Release Keystore
+        working-directory: Projects/adaptive-sr-system/android
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "Using keystore from secrets"
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > app/release.keystore
+            echo "STORE_FILE=$(pwd)/app/release.keystore" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_ALIAS=${{ secrets.ANDROID_KEY_ALIAS }}" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=${{ secrets.ANDROID_KEY_PASSWORD }}" >> $GITHUB_ENV
+          else
+            echo "No signing secrets - generating ephemeral keystore for Release (installable but not for Play Store updates)"
+            keytool -genkeypair -v \
+              -keystore app/release.keystore \
+              -storepass android \
+              -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Adaptive SR, OU=Dev, O=Adaptive SR, L=Mumbai, S=Maharashtra, C=IN"
+            echo "STORE_FILE=$(pwd)/app/release.keystore" >> $GITHUB_ENV
+            echo "STORE_PASSWORD=android" >> $GITHUB_ENV
+            echo "KEY_ALIAS=androiddebugkey" >> $GITHUB_ENV
+            echo "KEY_PASSWORD=android" >> $GITHUB_ENV
+          fi
+          echo "STORE_FILE=$STORE_FILE"
+          ls -lh app/release.keystore
+
+      - name: Build Release APK (signed)
+        working-directory: Projects/adaptive-sr-system/android
+        run: ./gradlew assembleRelease --stacktrace -Pandroid.injected.signing.store.file="$STORE_FILE" -Pandroid.injected.signing.store.password="$STORE_PASSWORD" -Pandroid.injected.signing.key.alias="$KEY_ALIAS" -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-sr-release-apk
+          path: Projects/adaptive-sr-system/android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
+
+      - name: Build Release AAB (signed)
+        working-directory: Projects/adaptive-sr-system/android
+        run: ./gradlew bundleRelease --stacktrace -Pandroid.injected.signing.store.file="$STORE_FILE" -Pandroid.injected.signing.store.password="$STORE_PASSWORD" -Pandroid.injected.signing.key.alias="$KEY_ALIAS" -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+
+      - name: Upload Release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: adaptive-sr-release-aab
+          path: Projects/adaptive-sr-system/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 14
+
+      # Attach APKs/AAB to GitHub Release when you create a Release (or push an adaptive-sr-v* tag)
+      - name: Attach to GitHub Release
+        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/adaptive-sr-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Projects/adaptive-sr-system/android/app/build/outputs/apk/debug/app-debug.apk
+            Projects/adaptive-sr-system/android/app/build/outputs/apk/release/app-release.apk
+            Projects/adaptive-sr-system/android/app/build/outputs/bundle/release/app-release.aab
+          generate_release_notes: true
