@@ -32,10 +32,14 @@ class TodayViewModel @Inject constructor(
 
   val uiState: StateFlow<TodayUiState> = repo.dueQueue().map { list ->
     val now = System.currentTimeMillis()
-    TodayUiState(list.map { c ->
+    // Overdue-first here, not just in Room: the repo interface guarantees no
+    // ordering, so the ViewModel enforces the contract. Mirrors CardDao's
+    // ORDER BY (null dueAt first, then dueAt ASC, then id ASC) exactly.
+    val sorted = list.sortedWith(compareBy<CardEntity>({ it.dueAt != null }, { it.dueAt }, { it.id }))
+    TodayUiState(sorted.map { c ->
       val od = c.dueAt?.let { maxOf(0, ((now - it) / 86_400_000).toInt()) } ?: 0
       TodayRow(c, Rating.entries.associateWith { r -> "${Sm2.preview(c.intervalDays, c.reviewCount, r)}d" }, od, c.pendingSync == 1)
-    }, list.count { it.pendingSync == 1 })
+    }, sorted.count { it.pendingSync == 1 })
   }.stateIn(scope, SharingStarted.Eagerly, TodayUiState())
 
   fun rate(id: String, r: Rating) {
