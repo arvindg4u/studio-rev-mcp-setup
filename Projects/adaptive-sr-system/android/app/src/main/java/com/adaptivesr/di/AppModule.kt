@@ -22,17 +22,30 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
+/**
+ * Runs [build], returning null instead of throwing. Keystore-backed crypto
+ * init can fail on real devices (missing key managers, locked/broken
+ * keystores); callers degrade to plaintext TokenStore rather than crashing
+ * the process. Catches Throwable deliberately: this is the last line of
+ * defense before a startup/worker crash.
+ */
+fun aeadOrNull(build: () -> Aead): Aead? = try {
+  build()
+} catch (t: Throwable) {
+  null
+}
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
   @Provides
   @Singleton
-  fun provideAead(@ApplicationContext ctx: Context): Aead {
+  fun provideAead(@ApplicationContext ctx: Context): Aead? = aeadOrNull {
     // Registers AesGcmKeyManager etc. Without this, AndroidKeysetManager.build()
     // throws "No key manager found for key type ...AesGcmKey" on first launch
     // (crashed DuePullWorker on 2026-09-03 per logcat).
     AeadConfig.register()
-    return AndroidKeysetManager.Builder()
+    AndroidKeysetManager.Builder()
       .withSharedPref(ctx, "adaptivesr_keyset", "adaptivesr_keyset_pref")
       .withKeyTemplate(AeadKeyTemplates.AES256_GCM)
       .withMasterKeyUri("android-keystore://adaptivesr_master_key")
@@ -46,9 +59,11 @@ object AppModule {
   fun provideDataStore(@ApplicationContext ctx: Context): DataStore<Preferences> =
     PreferenceDataStoreFactory.create { ctx.filesDir.resolve("tokens.preferences_pb") }
 
+  // Nullable Aead: TokenStore already degrades to plaintext storage when null,
+  // so crypto-init failure costs encryption, never the process.
   @Provides
   @Singleton
-  fun provideTokenStore(ds: DataStore<Preferences>, aead: Aead): TokenStore =
+  fun provideTokenStore(ds: DataStore<Preferences>, aead: Aead?): TokenStore =
     TokenStore(ds, aead)
 
   @Provides
