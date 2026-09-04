@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.adaptivesr.data.TokenStore
 import com.adaptivesr.data.remote.RaindropApi
 import com.google.crypto.tink.Aead
+import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.aead.AeadKeyTemplates
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
 import com.squareup.moshi.Moshi
@@ -26,14 +27,19 @@ import javax.inject.Singleton
 object AppModule {
   @Provides
   @Singleton
-  fun provideAead(@ApplicationContext ctx: Context): Aead =
-    AndroidKeysetManager.Builder()
+  fun provideAead(@ApplicationContext ctx: Context): Aead {
+    // Registers AesGcmKeyManager etc. Without this, AndroidKeysetManager.build()
+    // throws "No key manager found for key type ...AesGcmKey" on first launch
+    // (crashed DuePullWorker on 2026-09-03 per logcat).
+    AeadConfig.register()
+    return AndroidKeysetManager.Builder()
       .withSharedPref(ctx, "adaptivesr_keyset", "adaptivesr_keyset_pref")
       .withKeyTemplate(AeadKeyTemplates.AES256_GCM)
       .withMasterKeyUri("android-keystore://adaptivesr_master_key")
       .build()
       .keysetHandle
       .getPrimitive(Aead::class.java)
+  }
 
   @Provides
   @Singleton
