@@ -1,0 +1,24 @@
+#!/bin/bash
+# claude-zen — manage the Claude Code -> OpenCode ZEN proxy (:4013)
+# Usage: claude-zen {start|stop|restart|status|logs|test}
+PROXY_DIR="/teamspace/studios/this_studio/claude-code-proxy"
+
+case "${1:-status}" in
+  start|stop|restart|status|logs)
+    bash "$PROXY_DIR/proxy.sh" "$1"
+    ;;
+  test)
+    echo "--- health ---"
+    curl -s -m 10 http://127.0.0.1:4013/health; echo
+    echo "--- end-to-end (/v1/messages -> Muse Spark) ---"
+    curl -s -m 150 -X POST http://127.0.0.1:4013/v1/messages \
+      -H "Content-Type: application/json" \
+      -H "x-api-key: test" \
+      -H "anthropic-version: 2023-06-01" \
+      -d '{"model":"claude-sonnet-5","max_tokens":60,"messages":[{"role":"user","content":"Reply with exactly: zen-ok"}]}'; echo
+    ;;
+  *)
+    echo "Usage: claude-zen {start|stop|restart|status|logs|test}"
+    exit 1
+    ;;
+esac

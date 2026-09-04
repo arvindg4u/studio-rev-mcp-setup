@@ -1,0 +1,50 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:4013",
+    "ANTHROPIC_AUTH_TOKEN": "local-proxy",
+    "ANTHROPIC_MODEL": "claude-opus-5",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "128000"
+  },
+  "permissions": {
+    "deny": [
+      "WebSearch"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "enabledPlugins": {
+    "vercel@claude-plugins-official": true,
+    "github@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "claude-code-setup@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true,
+    "remember@claude-plugins-official": true,
+    "atomic-agents@claude-plugins-official": true,
+    "auth0@claude-plugins-official": true,
+    "superdesign@claude-plugins-official": true,
+    "kotlin-lsp@claude-plugins-official": true,
+    "supabase@claude-plugins-official": true
+  },
+  "modelSettings": {
+    "claude-sonnet-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5": {
+      "effortLevel": "xhigh"
+    },
+    "claude-opus-5[1m]": {
+      "effortLevel": "xhigh"
+    },
+    "opus": {
+      "effortLevel": "xhigh"
+    }
+  },
+  "autoCompactWindow": 1000000,
+  "skipDangerousModePermissionPrompt": true,
+  "theme": "dark"
+}
